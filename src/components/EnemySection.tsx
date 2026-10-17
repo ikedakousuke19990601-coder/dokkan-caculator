@@ -22,7 +22,7 @@ export function EnemySection({ form, errors, onChange }: Props) {
   }
 
   return (
-    <section className="space-y-3 rounded-xl bg-white p-4 shadow-sm">
+    <section className="space-y-3 rounded-xl bg-white p-3 shadow-sm sm:p-4">
       <h2 className="font-bold">敵の攻撃</h2>
       <NumberField
         label="敵ATK"
@@ -54,7 +54,7 @@ export function EnemySection({ form, errors, onChange }: Props) {
         </select>
       </label>
 
-      <label className="flex items-center justify-between gap-3 py-1">
+      <label className="flex min-h-11 items-center justify-between gap-3">
         <span className="text-sm font-medium text-slate-700">属性防御係数B（全属性ガード）</span>
         <input
           type="checkbox"

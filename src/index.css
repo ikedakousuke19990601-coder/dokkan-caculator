@@ -1,1 +1,6 @@
 @import 'tailwindcss';
+
+/* PC 幅でもアプリの外側まで同じ背景にする */
+body {
+  @apply bg-slate-100;
+}

@@ -29,7 +29,7 @@ export type CalcForm = {
 }
 
 /** 1つの値だけを更新できる項目 */
-type SimpleField = Exclude<keyof CalcForm, 'effects' | 'appliedPercent'>
+export type SimpleField = Exclude<keyof CalcForm, 'effects' | 'appliedPercent'>
 
 /** 既定値の 0 は空欄で表示する（入力前に 0 を消す手間をなくす） */
 function toText(value: number): string {

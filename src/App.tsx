@@ -30,10 +30,7 @@ function App() {
         appliedPercentErrors={errors.appliedPercent}
         onAppliedPercentChange={setAppliedPercent}
       />
-      <EnemySection
-        enemyAtk={form.enemyAtk}
-        onEnemyAtkChange={(value) => setField('enemyAtk', value)}
-      />
+      <EnemySection form={form} errors={errors} onChange={setField} />
     </main>
   )
 }

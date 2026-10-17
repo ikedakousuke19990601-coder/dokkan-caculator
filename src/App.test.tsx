@@ -188,3 +188,63 @@ describe('App（詳細: 反映済み％）', () => {
     expect(screen.getByLabelText('アクティブスキル').getAttribute('aria-invalid')).toBe('true')
   })
 })
+
+describe('App（敵の攻撃）', () => {
+  const field = (label: string) => screen.getByLabelText(label) as HTMLInputElement
+  const guardA = () => screen.getByLabelText('属性防御係数A（属性ガード）') as HTMLSelectElement
+  const guardB = () => field('属性防御係数B（全属性ガード）')
+
+  function renderWithBase() {
+    render(<App />)
+    input('画面のDEF', '19500')
+    input('敵ATK', '1000000')
+  }
+
+  it('spec 3章 B の5項目があり、初期値が仕様どおり', () => {
+    render(<App />)
+    expect(field('敵ATK').value).toBe('')
+    // 軽減率の初期値 0 は空欄（placeholder の 0）で表示する
+    expect(field('ダメージ軽減率（％）').value).toBe('')
+    expect(field('ダメージ軽減率（％）').placeholder).toBe('0')
+    expect(guardA().value).toBe('1')
+    expect(guardA().selectedOptions[0].textContent).toBe('なし(1.0)')
+    expect(guardB().checked).toBe(false)
+    expect(field('フィールド補正（最終ダメージ）').value).toBe('1')
+  })
+
+  it('属性防御係数A の選択肢が なし(1.0)/0.9/0.8/0.7/0.6', () => {
+    render(<App />)
+    const labels = Array.from(guardA().options).map((o) => o.textContent)
+    expect(labels).toEqual(['なし(1.0)', '0.9', '0.8', '0.7', '0.6'])
+  })
+
+  it('軽減率30%・A=0.8・B=オン → 270,250 / 278,650', () => {
+    renderWithBase()
+    input('ダメージ軽減率（％）', '30')
+    fireEvent.change(guardA(), { target: { value: '0.8' } })
+    fireEvent.click(guardB())
+    expect(guardB().checked).toBe(true)
+    expect(shown('乱数なし')).toBe('270,250')
+    expect(shown('最大乱数')).toBe('278,650')
+  })
+
+  it('フィールド補正 1.5 → 1,470,750 / 1,515,750', () => {
+    renderWithBase()
+    input('フィールド補正（最終ダメージ）', '1.5')
+    expect(shown('乱数なし')).toBe('1,470,750')
+    expect(shown('最大乱数')).toBe('1,515,750')
+  })
+
+  it('フィールド補正を空欄にすると既定値の 1 として計算する', () => {
+    renderWithBase()
+    input('フィールド補正（最終ダメージ）', '')
+    expect(shown('乱数なし')).toBe('980,500')
+  })
+
+  it('軽減率が範囲外のときは結果を出さず、入力欄を不正表示にする', () => {
+    renderWithBase()
+    input('ダメージ軽減率（％）', '101')
+    expect(shown('乱数なし')).toBe('―')
+    expect(field('ダメージ軽減率（％）').getAttribute('aria-invalid')).toBe('true')
+  })
+})

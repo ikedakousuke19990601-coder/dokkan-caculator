@@ -4,7 +4,7 @@ import { ResultPanel } from './components/ResultPanel'
 import { useCalcInput } from './hooks/useCalcInput'
 
 function App() {
-  const { form, result, setField } = useCalcInput()
+  const { form, result, setField, addEffect, updateEffect, removeEffect } = useCalcInput()
 
   return (
     <main className="mx-auto min-h-screen max-w-md space-y-4 bg-slate-100 p-4 text-slate-900">
@@ -13,6 +13,10 @@ function App() {
       <DefSection
         screenDef={form.screenDef}
         onScreenDefChange={(value) => setField('screenDef', value)}
+        effects={form.effects}
+        onAddEffect={addEffect}
+        onUpdateEffect={updateEffect}
+        onRemoveEffect={removeEffect}
       />
       <EnemySection
         enemyAtk={form.enemyAtk}

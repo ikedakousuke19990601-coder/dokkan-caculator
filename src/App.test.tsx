@@ -121,3 +121,70 @@ describe('App（これから上がる効果）', () => {
     expect(rows().categories).toHaveLength(1)
   })
 })
+
+describe('App（詳細: 反映済み％）', () => {
+  const toggle = () => screen.getByRole('button', { name: /詳細/ })
+
+  function renderWithBase() {
+    render(<App />)
+    input('画面のDEF', '10000')
+    input('敵ATK', '100000')
+  }
+
+  it('初期表示では反映済み％の入力欄が見えない', () => {
+    render(<App />)
+    expect(toggle().getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByLabelText('アクティブスキル')).toBeNull()
+  })
+
+  it('「詳細」を開くと5区分の入力欄が出る', () => {
+    render(<App />)
+    fireEvent.click(toggle())
+    expect(toggle().getAttribute('aria-expanded')).toBe('true')
+    for (const label of [
+      'パッシブ（足し算）',
+      'パッシブ（掛け算）',
+      'サポートメモリー・アイテム',
+      'アクティブスキル',
+      '必殺技の追加効果',
+    ]) {
+      expect(screen.getByLabelText(label)).toBeTruthy()
+    }
+  })
+
+  it('反映済み％を入れると、割り戻した結果に更新される', () => {
+    renderWithBase()
+    // 1行目を ⑥ +30%、反映済み ⑥ 50% → DEF 10,000 × 1.8 ÷ 1.5 = 12,000
+    fireEvent.change(screen.getAllByLabelText('区分')[0], { target: { value: 'active' } })
+    fireEvent.change(screen.getAllByLabelText('追加％')[0], { target: { value: '30' } })
+    fireEvent.click(toggle())
+    input('アクティブスキル', '50')
+    expect(shown('乱数なし')).toBe('88,000')
+    expect(shown('最大乱数')).toBe('91,000')
+  })
+
+  it('閉じても値を保持して計算に使い、「入力あり」と表示する', () => {
+    renderWithBase()
+    fireEvent.change(screen.getAllByLabelText('区分')[0], { target: { value: 'active' } })
+    fireEvent.change(screen.getAllByLabelText('追加％')[0], { target: { value: '30' } })
+    fireEvent.click(toggle())
+    input('アクティブスキル', '50')
+    fireEvent.click(toggle())
+
+    expect(toggle().textContent).toContain('入力あり')
+    expect(shown('乱数なし')).toBe('88,000')
+
+    // 開き直すと値が残っている
+    fireEvent.click(toggle())
+    expect((screen.getByLabelText('アクティブスキル') as HTMLInputElement).value).toBe('50')
+  })
+
+  it('反映済み％ -100 では NaN・Infinity を出さず、入力欄を不正表示にする', () => {
+    renderWithBase()
+    fireEvent.click(toggle())
+    input('アクティブスキル', '-100')
+    expect(shown('乱数なし')).toBe('―')
+    expect(shown('最大乱数')).toBe('―')
+    expect(screen.getByLabelText('アクティブスキル').getAttribute('aria-invalid')).toBe('true')
+  })
+})

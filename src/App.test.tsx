@@ -248,3 +248,71 @@ describe('App（敵の攻撃）', () => {
     expect(field('ダメージ軽減率（％）').getAttribute('aria-invalid')).toBe('true')
   })
 })
+
+describe('App（目安表示・エラー表示）', () => {
+  const status = () => screen.queryByRole('status')?.textContent
+
+  it('「目安」の注記を常に表示する', () => {
+    render(<App />)
+    expect(screen.getByText(/目安です/)).toBeTruthy()
+    input('画面のDEF', '19500')
+    input('敵ATK', '1000000')
+    expect(screen.getByText(/目安です/)).toBeTruthy()
+  })
+
+  it('必須項目が空のときは入力欄にエラーを出さず、結果欄で入力を案内する', () => {
+    render(<App />)
+    expect(status()).toBe('画面のDEFと敵ATKを入力してください')
+    expect(screen.getByLabelText('画面のDEF').getAttribute('aria-invalid')).toBe('false')
+    expect(screen.getByLabelText('敵ATK').getAttribute('aria-invalid')).toBe('false')
+  })
+
+  it('計算できるようになると案内が消える', () => {
+    render(<App />)
+    input('画面のDEF', '19500')
+    input('敵ATK', '1000000')
+    expect(status()).toBeUndefined()
+  })
+
+  it('負の敵ATK では入力欄の下にエラーを出し、結果は「―」', () => {
+    render(<App />)
+    input('画面のDEF', '19500')
+    input('敵ATK', '-1')
+    expect(screen.getByText('0以上の数値を入力してください')).toBeTruthy()
+    expect(screen.getByLabelText('敵ATK').getAttribute('aria-invalid')).toBe('true')
+    expect(shown('乱数なし')).toBe('―')
+    expect(status()).toBe('入力内容を確認してください')
+  })
+
+  it('数値でない画面のDEF でもエラーを出し、NaN を表示しない', () => {
+    render(<App />)
+    input('画面のDEF', 'abc')
+    input('敵ATK', '1000000')
+    expect(screen.getByText('0以上の数値を入力してください')).toBeTruthy()
+    expect(shown('乱数なし')).toBe('―')
+    expect(screen.queryByText(/NaN/)).toBeNull()
+  })
+
+  it('効果行の追加％ が数値でないときは、その行にエラーを出す', () => {
+    render(<App />)
+    input('画面のDEF', '19500')
+    input('敵ATK', '1000000')
+    fireEvent.change(screen.getAllByLabelText('追加％')[1], { target: { value: 'x' } })
+    expect(screen.getByText('数値を入力してください')).toBeTruthy()
+    expect(screen.getAllByLabelText('追加％')[1].getAttribute('aria-invalid')).toBe('true')
+    expect(shown('乱数なし')).toBe('―')
+  })
+
+  it('反映済み％ -100 では範囲を案内するエラーを出す', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /詳細/ }))
+    input('アクティブスキル', '-100')
+    expect(screen.getByText('-100より大きい数値を入力してください')).toBeTruthy()
+  })
+
+  it('軽減率が範囲外のときは 0〜100 を案内するエラーを出す', () => {
+    render(<App />)
+    input('ダメージ軽減率（％）', '101')
+    expect(screen.getByText('0〜100の数値を入力してください')).toBeTruthy()
+  })
+})

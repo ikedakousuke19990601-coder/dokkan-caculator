@@ -1,6 +1,7 @@
 import type { CalcForm, SimpleField } from '../hooks/useCalcInput'
 import type { ValidationErrors } from '../logic/normalize'
 import { ATTR_GUARD_A_VALUES } from '../logic/types'
+import { INVALID_MESSAGES } from './errorMessages'
 import { NumberField } from './NumberField'
 
 type EnemyField =
@@ -27,7 +28,7 @@ export function EnemySection({ form, errors, onChange }: Props) {
         label="敵ATK"
         value={form.enemyAtk}
         onChange={(value) => onChange('enemyAtk', value)}
-        invalid={errors.enemyAtk === 'invalid'}
+        error={errors.enemyAtk === 'invalid' ? INVALID_MESSAGES.zeroOrMore : undefined}
       />
       <NumberField
         label="ダメージ軽減率（％）"
@@ -35,7 +36,7 @@ export function EnemySection({ form, errors, onChange }: Props) {
         onChange={(value) => onChange('reductionPercent', value)}
         placeholder="0"
         inputMode="decimal"
-        invalid={errors.reductionPercent === 'invalid'}
+        error={errors.reductionPercent ? INVALID_MESSAGES.reductionPercent : undefined}
       />
 
       <label className="block">
@@ -69,7 +70,7 @@ export function EnemySection({ form, errors, onChange }: Props) {
         onChange={(value) => onChange('fieldCorrection', value)}
         placeholder="1"
         inputMode="decimal"
-        invalid={errors.fieldCorrection === 'invalid'}
+        error={errors.fieldCorrection ? INVALID_MESSAGES.zeroOrMore : undefined}
       />
     </section>
   )

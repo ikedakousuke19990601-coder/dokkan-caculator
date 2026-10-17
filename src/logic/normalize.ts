@@ -94,10 +94,13 @@ export function validateInput(input: CalcInput): ValidationErrors {
   return errors
 }
 
-/** エラーが1つでもあれば true（計算結果を出さない） */
-export function hasErrors(errors: ValidationErrors): boolean {
+/**
+ * エラーが1つでもあれば true（計算結果を出さない）。
+ * @param kind 指定すると、その種類のエラーだけを対象にする
+ */
+export function hasErrors(errors: ValidationErrors, kind?: ErrorKind): boolean {
   const { appliedPercent, effects, ...fields } = errors
   return [fields, appliedPercent, effects].some((group) =>
-    Object.values(group).some((kind) => kind !== undefined),
+    Object.values(group).some((k) => k !== undefined && (kind === undefined || k === kind)),
   )
 }

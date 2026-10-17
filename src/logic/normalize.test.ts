@@ -65,6 +65,19 @@ describe('validateInput（入力の検証）', () => {
     expect(hasErrors(errors)).toBe(true)
   })
 
+  it('hasErrors に種類を指定すると、その種類のエラーだけを見る', () => {
+    const requiredOnly = validateInput(DEFAULT_INPUT)
+    expect(hasErrors(requiredOnly, 'required')).toBe(true)
+    expect(hasErrors(requiredOnly, 'invalid')).toBe(false)
+
+    const invalidEffect = validateInput({
+      ...validInput,
+      effects: [{ id: 'a', category: 'active', addPercent: Number.NaN }],
+    })
+    expect(hasErrors(invalidEffect, 'invalid')).toBe(true)
+    expect(hasErrors(invalidEffect, 'required')).toBe(false)
+  })
+
   it('画面のDEF・敵ATK の負数は invalid', () => {
     const errors = validateInput({ ...validInput, screenDef: -1, enemyAtk: -1 })
     expect(errors.screenDef).toBe('invalid')

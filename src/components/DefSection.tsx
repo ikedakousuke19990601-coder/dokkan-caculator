@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { EffectForm } from '../hooks/useCalcInput'
-import type { ErrorKind } from '../logic/normalize'
+import type { ValidationErrors } from '../logic/normalize'
 import { EFFECT_CATEGORIES, EFFECT_CATEGORY_LABELS, type EffectCategory } from '../logic/types'
 import { EffectRow } from './EffectRow'
+import { INVALID_MESSAGES } from './errorMessages'
 import { NumberField } from './NumberField'
 
 type Props = {
@@ -13,8 +14,8 @@ type Props = {
   onUpdateEffect: (id: string, patch: Partial<Omit<EffectForm, 'id'>>) => void
   onRemoveEffect: (id: string) => void
   appliedPercent: Record<EffectCategory, string>
-  appliedPercentErrors: Partial<Record<EffectCategory, ErrorKind>>
   onAppliedPercentChange: (category: EffectCategory, value: string) => void
+  errors: Pick<ValidationErrors, 'screenDef' | 'effects' | 'appliedPercent'>
 }
 
 /** A. 自分のDEF */
@@ -26,8 +27,8 @@ export function DefSection({
   onUpdateEffect,
   onRemoveEffect,
   appliedPercent,
-  appliedPercentErrors,
   onAppliedPercentChange,
+  errors,
 }: Props) {
   // 反映済み％は通常0のため、初級者の入力を増やさないよう「詳細」に隠す（spec 3章）
   const [showDetail, setShowDetail] = useState(false)
@@ -37,7 +38,12 @@ export function DefSection({
   return (
     <section className="space-y-3 rounded-xl bg-white p-4 shadow-sm">
       <h2 className="font-bold">自分のDEF</h2>
-      <NumberField label="画面のDEF" value={screenDef} onChange={onScreenDefChange} />
+      <NumberField
+        label="画面のDEF"
+        value={screenDef}
+        onChange={onScreenDefChange}
+        error={errors.screenDef === 'invalid' ? INVALID_MESSAGES.zeroOrMore : undefined}
+      />
 
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-slate-700">これから上がる効果</h3>
@@ -47,6 +53,7 @@ export function DefSection({
             effect={effect}
             onChange={(patch) => onUpdateEffect(effect.id, patch)}
             onRemove={() => onRemoveEffect(effect.id)}
+            error={errors.effects[effect.id] ? INVALID_MESSAGES.number : undefined}
           />
         ))}
         <button
@@ -79,7 +86,9 @@ export function DefSection({
                   onChange={(value) => onAppliedPercentChange(category, value)}
                   placeholder="0"
                   inputMode="decimal"
-                  invalid={appliedPercentErrors[category] !== undefined}
+                  error={
+                    errors.appliedPercent[category] ? INVALID_MESSAGES.appliedPercent : undefined
+                  }
                 />
               ))}
             </div>

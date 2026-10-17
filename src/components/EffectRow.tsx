@@ -6,12 +6,15 @@ type Props = {
   effect: EffectForm
   onChange: (patch: Partial<Omit<EffectForm, 'id'>>) => void
   onRemove: () => void
+  /** 追加％が不正なときのエラーメッセージ */
+  error?: string
 }
 
 /** 「これから上がる効果」1行（区分＋％） */
-export function EffectRow({ effect, onChange, onRemove }: Props) {
+export function EffectRow({ effect, onChange, onRemove, error }: Props) {
+  // エラーメッセージで％欄が縦に伸びても揃うよう、上端で合わせる
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex items-start gap-2">
       <label className="block min-w-0 flex-1">
         <span className="text-sm font-medium text-slate-700">区分</span>
         <select
@@ -33,13 +36,14 @@ export function EffectRow({ effect, onChange, onRemove }: Props) {
           onChange={(addPercent) => onChange({ addPercent })}
           placeholder="0"
           inputMode="decimal"
+          error={error}
         />
       </div>
       <button
         type="button"
         onClick={onRemove}
         aria-label="この行を削除"
-        className="mb-0.5 shrink-0 rounded-lg px-3 py-2 text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+        className="mt-6 shrink-0 rounded-lg px-3 py-2 text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600"
       >
         ×
       </button>

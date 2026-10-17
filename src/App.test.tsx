@@ -312,6 +312,23 @@ describe('App（目安表示・エラー表示）', () => {
     expect(screen.getByText('-100より大きい数値を入力してください')).toBeTruthy()
   })
 
+  it('リセットボタンで、入力した値と結果が初期状態に戻る', () => {
+    render(<App />)
+    input('画面のDEF', '19500')
+    input('敵ATK', '1000000')
+    input('ダメージ軽減率（％）', '10')
+    fireEvent.change(screen.getAllByLabelText('追加％')[0], { target: { value: '20' } })
+    expect(shown('乱数なし')).not.toBe('―')
+
+    fireEvent.click(screen.getByRole('button', { name: '入力をリセット' }))
+
+    expect((screen.getByLabelText('画面のDEF') as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText('敵ATK') as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText('ダメージ軽減率（％）') as HTMLInputElement).value).toBe('')
+    expect((screen.getAllByLabelText('追加％')[0] as HTMLInputElement).value).toBe('')
+    expect(shown('乱数なし')).toBe('―')
+  })
+
   it('軽減率が範囲外のときは 0〜100 を案内するエラーを出す', () => {
     render(<App />)
     input('ダメージ軽減率（％）', '101')

@@ -2,6 +2,7 @@ import { DefSection } from './components/DefSection'
 import { Disclaimer } from './components/Disclaimer'
 import { EnemySection } from './components/EnemySection'
 import { resultHint } from './components/errorMessages'
+import { ResetButton } from './components/ResetButton'
 import { ResultPanel } from './components/ResultPanel'
 import { useCalcInput } from './hooks/useCalcInput'
 
@@ -15,6 +16,7 @@ function App() {
     addEffect,
     updateEffect,
     removeEffect,
+    reset,
   } = useCalcInput()
 
   return (
@@ -39,6 +41,7 @@ function App() {
         errors={errors}
       />
       <EnemySection form={form} errors={errors} onChange={setField} />
+      <ResetButton onReset={reset} />
     </main>
   )
 }

@@ -146,6 +146,27 @@ describe('useCalcInput（保存・復元）', () => {
     expect(result.current.result).toEqual({ noRandom: 88000, maxRandom: 91000 })
   })
 
+  it('reset すると、復元した入力を含めてすべて既定値に戻る', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved))
+    const { result } = renderHook(() => useCalcInput())
+    act(() => result.current.reset())
+    expect(result.current.form).toEqual(toCalcForm(DEFAULT_INPUT))
+    expect(result.current.result).toBeNull()
+  })
+
+  it('reset 後は既定値が保存され、次回起動時に前の入力が復元されない', () => {
+    vi.useFakeTimers()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved))
+    const { result, unmount } = renderHook(() => useCalcInput())
+    act(() => result.current.reset())
+    act(() => vi.advanceTimersByTime(300))
+    expect(storedInput()).toEqual(DEFAULT_INPUT)
+
+    unmount()
+    const { result: next } = renderHook(() => useCalcInput())
+    expect(next.current.form).toEqual(toCalcForm(DEFAULT_INPUT))
+  })
+
   it('壊れた保存データでも既定値で起動する', () => {
     localStorage.setItem(STORAGE_KEY, '{broken')
     const { result } = renderHook(() => useCalcInput())

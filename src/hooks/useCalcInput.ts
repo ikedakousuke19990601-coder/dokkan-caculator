@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { calcDamage } from '../logic/calcDamage'
 import { parseNumberInput, validateInput } from '../logic/normalize'
 import {
@@ -8,6 +8,7 @@ import {
   type CalcInput,
   type EffectCategory,
 } from '../logic/types'
+import { loadInput, saveInput } from '../storage/inputStorage'
 
 /** 効果行の入力欄の値。％は入力途中（空欄・「12.」など）を保つため文字列で持つ */
 export type EffectForm = {
@@ -27,6 +28,9 @@ export type CalcForm = {
   allAttrGuardB: boolean
   fieldCorrection: string
 }
+
+/** 入力が止まってから保存するまでの時間。毎キー入力で書き込まないようにする（architecture 4章） */
+const SAVE_DELAY_MS = 300
 
 /** 1つの値だけを更新できる項目 */
 export type SimpleField = Exclude<keyof CalcForm, 'effects' | 'appliedPercent'>
@@ -78,11 +82,17 @@ export function toCalcInput(form: CalcForm): CalcInput {
 }
 
 /**
- * 入力の状態を管理し、入力が変わるたびに再計算する。
+ * 入力の状態を管理し、入力が変わるたびに再計算・保存する。
  * 計算式は持たず、logic/ の関数を呼ぶだけにする。
  */
 export function useCalcInput() {
-  const [form, setForm] = useState<CalcForm>(() => toCalcForm(DEFAULT_INPUT))
+  // 前回の入力を復元する。保存データがない・壊れているときは既定値
+  const [form, setForm] = useState<CalcForm>(() => toCalcForm(loadInput()))
+
+  useEffect(() => {
+    const timer = setTimeout(() => saveInput(toCalcInput(form)), SAVE_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [form])
 
   const { errors, result } = useMemo(() => {
     const input = toCalcInput(form)

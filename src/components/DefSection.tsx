@@ -5,6 +5,7 @@ import { EFFECT_CATEGORIES, EFFECT_CATEGORY_LABELS, type EffectCategory } from '
 import { EffectRow } from './EffectRow'
 import { INVALID_MESSAGES } from './errorMessages'
 import { NumberField } from './NumberField'
+import { PassiveHint } from './PassiveHint'
 
 type Props = {
   screenDef: string
@@ -46,7 +47,7 @@ export function DefSection({
       />
 
       <div className="space-y-2">
-        <h3 className="text-sm font-bold text-slate-700">これから上がる効果</h3>
+        <PassiveHint heading="これから上がる効果" />
         {effects.map((effect) => (
           <EffectRow
             key={effect.id}

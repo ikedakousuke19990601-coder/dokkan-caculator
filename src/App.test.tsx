@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 
+// 前のテストで保存された入力が復元されないようにする
+beforeEach(() => localStorage.clear())
 afterEach(cleanup)
 
 function input(label: string, value: string) {

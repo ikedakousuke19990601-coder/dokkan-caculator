@@ -1,8 +1,16 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { DEFAULT_INPUT } from '../logic/types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { DEFAULT_INPUT, type CalcInput } from '../logic/types'
+import { STORAGE_KEY } from '../storage/inputStorage'
 import { toCalcForm, toCalcInput, useCalcInput } from './useCalcInput'
+
+// 前のテストで保存された入力が復元されないようにする
+beforeEach(() => localStorage.clear())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 describe('toCalcForm / toCalcInput（入力欄の値 ⇔ CalcInput）', () => {
   it('既定値の 0 は空欄で表示し、フィールド補正の 1 はそのまま表示する', () => {
@@ -112,5 +120,67 @@ describe('useCalcInput', () => {
     })
     expect(result.current.errors.enemyAtk).toBe('invalid')
     expect(result.current.result).toBeNull()
+  })
+})
+
+describe('useCalcInput（保存・復元）', () => {
+  const saved: CalcInput = {
+    ...DEFAULT_INPUT,
+    screenDef: 10000,
+    effects: [{ id: 'a', category: 'active', addPercent: 30 }],
+    appliedPercent: { ...DEFAULT_INPUT.appliedPercent, active: 50 },
+    enemyAtk: 100000,
+  }
+
+  function storedInput(): unknown {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
+  }
+
+  it('前回の入力（効果行・反映済み％を含む）を復元し、すぐ計算する', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved))
+    const { result } = renderHook(() => useCalcInput())
+    expect(result.current.form.screenDef).toBe('10000')
+    expect(result.current.form.effects).toEqual([{ id: 'a', category: 'active', addPercent: '30' }])
+    expect(result.current.form.appliedPercent.active).toBe('50')
+    // DEF 10,000 × 1.8 ÷ 1.5 = 12,000
+    expect(result.current.result).toEqual({ noRandom: 88000, maxRandom: 91000 })
+  })
+
+  it('壊れた保存データでも既定値で起動する', () => {
+    localStorage.setItem(STORAGE_KEY, '{broken')
+    const { result } = renderHook(() => useCalcInput())
+    expect(result.current.form).toEqual(toCalcForm(DEFAULT_INPUT))
+  })
+
+  it('入力が止まってから 300ms 後に1回だけ保存する', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useCalcInput())
+    act(() => vi.advanceTimersByTime(300)) // 起動時の保存を済ませる
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+
+    // 100ms おきに連続入力している間は保存しない
+    // 保存タイマーは effect（act の終了後）で設定されるため、入力と時間送りは別の act にする
+    for (const text of ['1', '10', '100']) {
+      act(() => result.current.setField('enemyAtk', text))
+      act(() => vi.advanceTimersByTime(100))
+    }
+    expect(setItem).not.toHaveBeenCalled()
+
+    // 最後の入力から 300ms 経つと、最新の値で1回だけ保存する
+    act(() => vi.advanceTimersByTime(200))
+    expect(setItem).toHaveBeenCalledTimes(1)
+    expect(storedInput()).toMatchObject({ enemyAtk: 100 })
+  })
+
+  it('アンマウントすると保存待ちのタイマーを片付ける', () => {
+    vi.useFakeTimers()
+    const { result, unmount } = renderHook(() => useCalcInput())
+    act(() => vi.advanceTimersByTime(300))
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+
+    act(() => result.current.setField('enemyAtk', '100'))
+    unmount()
+    act(() => vi.advanceTimersByTime(300))
+    expect(setItem).not.toHaveBeenCalled()
   })
 })

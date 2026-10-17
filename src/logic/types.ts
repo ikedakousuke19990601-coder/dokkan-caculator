@@ -21,6 +21,15 @@ export const EFFECT_CATEGORY_LABELS: Record<EffectCategory, string> = {
   superAttack: '必殺技の追加効果',
 }
 
+/**
+ * 必殺技の追加効果の補助ボタン（spec 3章）。ゲーム内の「上昇」「大幅上昇」を％にする。
+ * 仮仕様: 「上昇＝通常20%」は1つの記事のみで未検証（spec 7章・11章）。
+ */
+export const SUPER_ATTACK_PRESETS = [
+  { label: '上昇', percent: 20 },
+  { label: '大幅上昇', percent: 50 },
+] as const
+
 /** 「これから上がる効果」の1行 */
 export type DefEffect = {
   id: string

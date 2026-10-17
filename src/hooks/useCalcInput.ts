@@ -123,10 +123,16 @@ export function useCalcInput() {
     setForm((prev) => ({ ...prev, effects: prev.effects.filter((e) => e.id !== id) }))
   }
 
+  /** すべての入力を初期状態に戻す。保存も既定値で上書きされる（保存は form の変化で走る） */
+  function reset() {
+    setForm(toCalcForm(DEFAULT_INPUT))
+  }
+
   return {
     form,
     errors,
     result,
+    reset,
     setField,
     setAppliedPercent,
     addEffect,

@@ -230,6 +230,33 @@ describe('App（敵の攻撃）', () => {
     expect(shown('最大乱数')).toBe('278,650')
   })
 
+  it('全属性ガードをオンにすると、係数Aが 0.8 に固定され、注意書きが出る', () => {
+    renderWithBase()
+    expect(screen.queryByText(/オンの間、係数Aは0.8で計算します/)).toBeNull()
+    expect(guardA().disabled).toBe(false)
+
+    fireEvent.click(guardB())
+
+    expect(guardA().disabled).toBe(true)
+    expect(guardA().value).toBe('0.8')
+    expect(screen.getByText(/オンの間、係数Aは0.8で計算します/)).toBeTruthy()
+    // 1,000,000 × 0.8 = 800,000 − 19,500 = 780,500 → × 0.5 = 390,250
+    expect(shown('乱数なし')).toBe('390,250')
+  })
+
+  it('全属性ガードをオフに戻すと、直前に選んでいた係数Aに戻り、注意書きが消える', () => {
+    renderWithBase()
+    fireEvent.change(guardA(), { target: { value: '0.6' } })
+    fireEvent.click(guardB())
+    fireEvent.click(guardB())
+
+    expect(guardA().disabled).toBe(false)
+    expect(guardA().value).toBe('0.6')
+    expect(screen.queryByText(/オンの間、係数Aは0.8で計算します/)).toBeNull()
+    // 1,000,000 × 0.6 = 600,000 − 19,500 = 580,500
+    expect(shown('乱数なし')).toBe('580,500')
+  })
+
   it('フィールド補正 1.5 → 1,470,750 / 1,515,750', () => {
     renderWithBase()
     input('フィールド補正（最終ダメージ）', '1.5')

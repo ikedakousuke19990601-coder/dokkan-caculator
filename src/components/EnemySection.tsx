@@ -1,6 +1,6 @@
 import type { CalcForm, SimpleField } from '../hooks/useCalcInput'
 import type { ValidationErrors } from '../logic/normalize'
-import { ATTR_GUARD_A_VALUES } from '../logic/types'
+import { ALL_ATTR_GUARD_A, ATTR_GUARD_A_VALUES } from '../logic/types'
 import { INVALID_MESSAGES } from './errorMessages'
 import { NumberField } from './NumberField'
 
@@ -42,9 +42,11 @@ export function EnemySection({ form, errors, onChange }: Props) {
       <label className="block">
         <span className="text-sm font-medium text-slate-700">属性防御係数A（属性ガード）</span>
         <select
-          value={String(form.attrGuardA)}
+          // 全属性ガードがオンの間は 0.8 で計算するため、選択中の値ではなく 0.8 を見せて選べなくする
+          value={String(form.allAttrGuardB ? ALL_ATTR_GUARD_A : form.attrGuardA)}
+          disabled={form.allAttrGuardB}
           onChange={(e) => changeAttrGuardA(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2.5 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500"
         >
           {ATTR_GUARD_A_VALUES.map((value) => (
             <option key={value} value={String(value)}>
@@ -63,6 +65,12 @@ export function EnemySection({ form, errors, onChange }: Props) {
           className="size-6 accent-sky-600"
         />
       </label>
+      {/* 係数Aが自動で変わる理由が分からないと不具合に見えるため、オンの間だけ理由を示す（spec 3章） */}
+      {form.allAttrGuardB && (
+        <p className="rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+          全属性ガードは、敵ATKを×0.8（係数A）、DEFを引いたあとを×0.5（係数B）の2段階で軽減します。オンの間、係数Aは0.8で計算します。
+        </p>
+      )}
 
       <NumberField
         label="フィールド補正（最終ダメージ）"

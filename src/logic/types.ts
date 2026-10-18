@@ -43,6 +43,13 @@ export const ATTR_GUARD_A_VALUES = [1, 0.9, 0.8, 0.7, 0.6] as const
 
 export type AttrGuardA = (typeof ATTR_GUARD_A_VALUES)[number]
 
+/**
+ * 全属性ガードがオンのときの属性防御係数A。
+ * 全属性ガードは「DEFを引く前に A=0.8」「引いたあとに B=0.5」の2段階で軽減する（spec 4章）。
+ * 画面にも同じ値を見せるため、ここに置く。
+ */
+export const ALL_ATTR_GUARD_A = 0.8
+
 /** 計算の入力。％の項目はすべて「50 → 50%」の形で持つ */
 export type CalcInput = {
   /** 画面のDEF（リーダー・リンク・現在のパッシブ・フィールド効果込み） */

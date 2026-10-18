@@ -1,6 +1,6 @@
-import { calcDamage } from './calcDamage'
+import { calcDamageValidated } from './calcDamage'
 import { hasErrors, validateInput } from './normalize'
-import type { CalcInput, CalcResult } from './types'
+import type { CalcInput } from './types'
 
 /**
  * 探索する敵ATKの上限。ここでもダメージが0なら「上限なし」とする。
@@ -50,12 +50,8 @@ export function calcShutoutAtk(input: CalcInput): ShutoutAtk | null {
   // 敵ATKは探索で決めるため、検証では妥当な値（1）に差し替える
   if (hasErrors(validateInput({ ...input, enemyAtk: 1 }))) return null
 
-  const damageOf = (enemyAtk: number): CalcResult => {
-    const result = calcDamage({ ...input, enemyAtk })
-    // 検証済みの入力で ATK ≥ 1 なので、null にはならない
-    if (result === null) throw new Error('検証済みの入力で計算できませんでした')
-    return result
-  }
+  // 検証済みで、探索する敵ATKは1以上なので、検証を省いた計算を直接使う
+  const damageOf = (enemyAtk: number) => calcDamageValidated({ ...input, enemyAtk })
 
   return {
     noRandom: findMaxShutoutAtk((atk) => damageOf(atk).noRandom),

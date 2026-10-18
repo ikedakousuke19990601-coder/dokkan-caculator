@@ -33,16 +33,24 @@ function calcDamageAt(input: CalcInput, currentDef: number, randomPercent: numbe
 }
 
 /**
+ * 検証済みの入力から被ダメージを計算する。
+ * 検証を済ませた呼び出し側（calcDamage・calcShutoutAtk）だけが使う。
+ * @param input validateInput でエラーがないことを確認済みの入力
+ */
+export function calcDamageValidated(input: CalcInput): CalcResult {
+  const currentDef = calcDef(input)
+  return {
+    noRandom: calcDamageAt(input, currentDef, RANDOM_NONE_PERCENT),
+    maxRandom: calcDamageAt(input, currentDef, RANDOM_MAX_PERCENT),
+  }
+}
+
+/**
  * 被ダメージを計算する。
  * @param input 計算の入力
  * @returns 乱数なし・最大乱数の被ダメージ。入力にエラーがあるときは null
  */
 export function calcDamage(input: CalcInput): CalcResult | null {
   if (hasErrors(validateInput(input))) return null
-
-  const currentDef = calcDef(input)
-  return {
-    noRandom: calcDamageAt(input, currentDef, RANDOM_NONE_PERCENT),
-    maxRandom: calcDamageAt(input, currentDef, RANDOM_MAX_PERCENT),
-  }
+  return calcDamageValidated(input)
 }

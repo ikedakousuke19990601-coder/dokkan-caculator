@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { calcDamage } from '../logic/calcDamage'
+import { calcShutoutAtk } from '../logic/calcShutoutAtk'
 import { parseNumberInput, validateInput } from '../logic/normalize'
 import {
   DEFAULT_INPUT,
@@ -94,9 +95,13 @@ export function useCalcInput() {
     return () => clearTimeout(timer)
   }, [form])
 
-  const { errors, result } = useMemo(() => {
+  const { errors, result, shutout } = useMemo(() => {
     const input = toCalcInput(form)
-    return { errors: validateInput(input), result: calcDamage(input) }
+    return {
+      errors: validateInput(input),
+      result: calcDamage(input),
+      shutout: calcShutoutAtk(input),
+    }
   }, [form])
 
   function setField<K extends SimpleField>(key: K, value: CalcForm[K]) {
@@ -132,6 +137,7 @@ export function useCalcInput() {
     form,
     errors,
     result,
+    shutout,
     reset,
     setField,
     setAppliedPercent,

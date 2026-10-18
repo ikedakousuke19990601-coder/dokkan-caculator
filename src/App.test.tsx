@@ -15,6 +15,10 @@ function shown(label: '乱数なし' | '最大乱数') {
   return screen.getByTestId(label).textContent
 }
 
+function shutout(label: '乱数なし' | '最大乱数') {
+  return screen.getByTestId(`完封-${label}`).textContent
+}
+
 describe('App（最小UI）', () => {
   it('未入力のときは結果に「―」を表示する', () => {
     render(<App />)
@@ -188,6 +192,45 @@ describe('App（詳細: 反映済み％）', () => {
     expect(shown('乱数なし')).toBe('―')
     expect(shown('最大乱数')).toBe('―')
     expect(screen.getByLabelText('アクティブスキル').getAttribute('aria-invalid')).toBe('true')
+  })
+})
+
+describe('App（完封できる敵ATKの上限）', () => {
+  it('画面のDEFが未入力のときは「―」', () => {
+    render(<App />)
+    expect(shutout('乱数なし')).toBe('―')
+    expect(shutout('最大乱数')).toBe('―')
+  })
+
+  it('画面のDEFを入れると、敵ATKが未入力でも上限が出る', () => {
+    render(<App />)
+    input('画面のDEF', '10000')
+    // r=1.00: ATK ≤ 10,000 / r=1.03: ATK ≤ 9,709（useCalcInput.test.ts と同じ）
+    expect(shutout('乱数なし')).toBe('10,000')
+    expect(shutout('最大乱数')).toBe('9,709')
+    expect(shown('乱数なし')).toBe('―')
+  })
+
+  it('どんなATKでもダメージ0なら「上限なし」と表示する', () => {
+    render(<App />)
+    input('画面のDEF', '10000')
+    input('ダメージ軽減率（％）', '100')
+    expect(shutout('乱数なし')).toBe('上限なし')
+    expect(shutout('最大乱数')).toBe('上限なし')
+  })
+
+  it('敵ATK 1 でもダメージが出るときは「なし」と表示する', () => {
+    render(<App />)
+    input('画面のDEF', '10000')
+    fireEvent.change(screen.getAllByLabelText('追加％')[0], { target: { value: '-100' } })
+    expect(shutout('乱数なし')).toBe('なし')
+  })
+
+  it('入力にエラーがあるときは「―」', () => {
+    render(<App />)
+    input('画面のDEF', '10000')
+    input('ダメージ軽減率（％）', '101')
+    expect(shutout('乱数なし')).toBe('―')
   })
 })
 

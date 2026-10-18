@@ -11,6 +11,7 @@ function App() {
     form,
     errors,
     result,
+    shutout,
     setField,
     setAppliedPercent,
     addEffect,
@@ -25,7 +26,7 @@ function App() {
       <div className="space-y-1">
         {/* スマホで下の入力欄を操作している間も結果が見えるよう、上部に固定する */}
         <div className="sticky top-2 z-10">
-          <ResultPanel result={result} hint={resultHint(errors)} />
+          <ResultPanel result={result} shutout={shutout} hint={resultHint(errors)} />
         </div>
         <Disclaimer />
       </div>

@@ -73,6 +73,18 @@ describe('useCalcInput', () => {
     expect(result.current.result).toEqual({ noRandom: 35000, maxRandom: 36200 })
   })
 
+  it('画面のDEFだけで、完封できる敵ATKの上限を計算する（敵ATKは不要）', () => {
+    const { result } = renderHook(() => useCalcInput())
+    expect(result.current.shutout).toBeNull()
+
+    act(() => result.current.setField('screenDef', '10000'))
+    // r=1.00: ATK ≤ 10,000
+    // r=1.03: 9,709 × 1.03 = 10,000.27 → 10,000 − 10,000 = 0（9,710 × 1.03 = 10,001.3 → 1）
+    expect(result.current.shutout).toEqual({ noRandom: 10000, maxRandom: 9709 })
+    // 敵ATK が未入力なので被ダメージは出ない
+    expect(result.current.result).toBeNull()
+  })
+
   it('入力途中の文字列（「12.」）をそのまま保持する', () => {
     const { result } = renderHook(() => useCalcInput())
     act(() => result.current.setField('fieldCorrection', '1.'))

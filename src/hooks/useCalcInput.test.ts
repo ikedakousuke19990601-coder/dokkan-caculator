@@ -67,7 +67,10 @@ describe('useCalcInput', () => {
       result.current.setField('enemyAtk', '100000')
       result.current.setField('allAttrGuardB', true)
     })
-    expect(result.current.result).toEqual({ noRandom: 45000, maxRandom: 46500 })
+    // 全属性ガードで A=0.8・B=0.5
+    // r=1.00: 100,000 × 0.8 = 80,000 − 10,000 = 70,000 → × 0.5 = 35,000
+    // r=1.03: 103,000 × 0.8 = 82,400 − 10,000 = 72,400 → × 0.5 = 36,200
+    expect(result.current.result).toEqual({ noRandom: 35000, maxRandom: 36200 })
   })
 
   it('入力途中の文字列（「12.」）をそのまま保持する', () => {

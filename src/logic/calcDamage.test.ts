@@ -56,9 +56,36 @@ describe('calcDamage（被ダメージ）', () => {
     expect(noRandomAt(0.6)).toBe(580500)
   })
 
-  it('全属性ガードB がオフなら 1.0、オンなら 0.5', () => {
+  it('全属性ガードがオフなら A・B とも 1.0、オンなら A=0.8・B=0.5', () => {
+    // オフ: 1,000,000 − 19,500 = 980,500
+    // オン: 1,000,000 × 0.8 = 800,000 → − 19,500 = 780,500 → × 0.5 = 390,250
     expect(calcDamage({ ...baseInput, allAttrGuardB: false })?.noRandom).toBe(980500)
-    expect(calcDamage({ ...baseInput, allAttrGuardB: true })?.noRandom).toBe(490250)
+    expect(calcDamage({ ...baseInput, allAttrGuardB: true })?.noRandom).toBe(390250)
+  })
+
+  it('全属性ガードがオンのときは、選んだ属性防御係数A を使わず 0.8 で計算する', () => {
+    const noRandomAt = (attrGuardA: CalcInput['attrGuardA']) =>
+      calcDamage({ ...baseInput, attrGuardA, allAttrGuardB: true })?.noRandom
+
+    // どの A でも 390,250（A=0.8 の場合と同じ）
+    expect(noRandomAt(1)).toBe(390250)
+    expect(noRandomAt(0.9)).toBe(390250)
+    expect(noRandomAt(0.6)).toBe(390250)
+  })
+
+  it('実機との照合ケース: 全属性ガードあり → 870,836 / 903,668（実機は約860,000）', () => {
+    // 敵ATK 3,800,000、画面のDEF 447,128（効果なし）、軽減率28%
+    // r=1.00: 3,800,000 × 0.8 = 3,040,000 → × 0.72 = 2,188,800 → − 447,128 = 1,741,672 → × 0.5 = 870,836
+    // r=1.03: 3,914,000 × 0.8 = 3,131,200 → × 0.72 = 2,254,464 → − 447,128 = 1,807,336 → × 0.5 = 903,668
+    const input: CalcInput = {
+      ...DEFAULT_INPUT,
+      screenDef: 447128,
+      effects: [],
+      enemyAtk: 3800000,
+      reductionPercent: 28,
+      allAttrGuardB: true,
+    }
+    expect(calcDamage(input)).toEqual({ noRandom: 870836, maxRandom: 903668 })
   })
 
   it('途中の値は切り捨てる（仮仕様）', () => {
@@ -83,9 +110,10 @@ describe('calcDamage（被ダメージ）', () => {
       noRandom: 980501,
       maxRandom: 1010501,
     })
-    // 敵ATK 1,000,001: 980,501 × 0.5 = 490,250.5 → 途中なので切り捨て 490,250
-    expect(calcDamage({ ...baseInput, enemyAtk: 1000001, allAttrGuardB: true })?.noRandom).toBe(
-      490250,
+    // 全属性ガード・敵ATK 1,000,002: 1,000,002 × 0.8 = 800,001.6 → 800,001 → − 19,500 = 780,501
+    // → × 0.5 = 390,250.5 → 途中なので切り捨て 390,250（四捨五入なら 390,251）
+    expect(calcDamage({ ...baseInput, enemyAtk: 1000002, allAttrGuardB: true })?.noRandom).toBe(
+      390250,
     )
   })
 
